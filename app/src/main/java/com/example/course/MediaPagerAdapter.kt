@@ -1,43 +1,74 @@
 package com.example.course
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.VideoView
+import android.widget.MediaController
 import androidx.recyclerview.widget.RecyclerView
+import com.example.course.databinding.ItemMediaBinding
 
 class MediaPagerAdapter(
-    private val mediaList: List<MediaItem>
+    private var mediaList: MutableList<MediaItem>,
+    private val onDeleteClick: (MediaItem, Int) -> Unit
 ) : RecyclerView.Adapter<MediaPagerAdapter.MediaViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_media, parent, false)
-        return MediaViewHolder(view)
+        val binding = ItemMediaBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return MediaViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: MediaViewHolder, position: Int) {
         val mediaItem = mediaList[position]
-        holder.bind(mediaItem)
+        holder.bind(mediaItem, position)
     }
 
     override fun getItemCount(): Int = mediaList.size
 
-    class MediaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val imageView: ImageView = itemView.findViewById(R.id.imageView)
-        //private val videoView: VideoView = itemView.findViewById(R.id.videoView)
+    fun removeItem(position: Int) {
+        mediaList.removeAt(position)
+        notifyItemRemoved(position)
+        notifyItemRangeChanged(position, mediaList.size)
+    }
 
-        fun bind(mediaItem: MediaItem) {
+    inner class MediaViewHolder(
+        private val binding: ItemMediaBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(mediaItem: MediaItem, position: Int) {
             if (mediaItem.type == MediaType.IMAGE) {
-                imageView.visibility = View.VISIBLE
-                //videoView.visibility = View.GONE
-                imageView.setImageURI(mediaItem.uri)
+                binding.imageView.visibility = View.VISIBLE
+                binding.videoView.visibility = View.GONE
+                binding.imageView.setImageURI(mediaItem.uri)
+                binding.videoView.stopPlayback() // Останавливаем видео если оно воспроизводилось
             } else if (mediaItem.type == MediaType.VIDEO) {
-                imageView.visibility = View.GONE
-               // videoView.visibility = View.VISIBLE
-                //videoView.setVideoURI(mediaItem.uri)
-                //videoView.start()
+                binding.imageView.visibility = View.GONE
+                binding.videoView.visibility = View.VISIBLE
+
+                // Настройка VideoView
+                binding.videoView.setVideoURI(mediaItem.uri)
+                val mediaController = MediaController(binding.root.context)
+                mediaController.setAnchorView(binding.videoView)
+                binding.videoView.setMediaController(mediaController)
+
+                // Автовоспроизведение
+                binding.videoView.setOnPreparedListener { mediaPlayer ->
+                    mediaPlayer.start()
+                }
+
+                // Обработка ошибок
+                binding.videoView.setOnErrorListener { mp, what, extra ->
+                    Log.e("MediaPagerAdapter", "Error playing video: what=$what extra=$extra")
+                    false
+                }
+            }
+
+            // Setup delete button
+            binding.deleteButton.setOnClickListener {
+                binding.videoView.stopPlayback() // Останавливаем видео перед удалением
+                onDeleteClick(mediaItem, position)
             }
         }
     }
+
 }

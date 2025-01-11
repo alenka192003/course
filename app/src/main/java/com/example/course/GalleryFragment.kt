@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.course.databinding.FragmentGalleryBinding
@@ -30,12 +31,15 @@ class GalleryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupFragmentResultListener() // Добавлен вызов метода
         setupRecyclerView()
         loadMedia()
     }
 
-
     private fun loadMedia() {
+        // Очищаем список перед загрузкой новых данных
+        mediaList.clear()
+
         val projection = arrayOf(
             MediaStore.MediaColumns._ID,
             MediaStore.MediaColumns.DISPLAY_NAME,
@@ -68,13 +72,12 @@ class GalleryFragment : Fragment() {
             }
         }
 
-
         // Query for videos
         requireContext().contentResolver.query(
             videoCollection,
             projection,
             "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ?",
-            arrayOf("%Pictures/CameraApp%"),
+            arrayOf("%Movies/CameraApp%"),
             "${MediaStore.MediaColumns.DATE_ADDED} DESC"
         )?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
@@ -94,29 +97,48 @@ class GalleryFragment : Fragment() {
         mediaAdapter.notifyDataSetChanged()
     }
 
+    private fun setupFragmentResultListener() {
+        // Слушаем результат удаления из MediaViewerFragment
+        setFragmentResultListener("media_deleted") { _, bundle ->
+            val deletedId = bundle.getLong("deleted_id")
+            // Удаляем элемент из списка
+            mediaList.removeAll { it.id == deletedId }
+            mediaAdapter.notifyDataSetChanged()
+
+            // Если хотите полностью перезагрузить галерею
+            refreshGallery()
+        }
+    }
+    private fun refreshGallery() {
+        mediaList.clear()
+        loadMedia()
+    }
 
     private fun setupRecyclerView() {
-        mediaAdapter = MediaAdapter(mediaList) { media ->
-            val position = mediaList.indexOf(media)
-            val bundle = Bundle().apply {
-                putParcelableArrayList("mediaList", ArrayList(mediaList))
-                putInt("initialPosition", position)
-            }
+        mediaAdapter = MediaAdapter(
+            mediaList = mediaList,
+            onItemClick = { media, position ->
+                val bundle = Bundle().apply {
+                    putParcelableArrayList("mediaList", ArrayList(mediaList))
+                    putInt("initialPosition", position)
+                }
 
-            view?.let { view ->
-                Navigation.findNavController(view).navigate(
-                    R.id.action_gallery_to_media_viewer,
-                    bundle
-                )
+                view?.let { view ->
+                    Navigation.findNavController(view).navigate(
+                        R.id.action_gallery_to_media_viewer,
+                        bundle
+                    )
+                }
             }
-        }
+        )
+
 
         binding.recyclerView.apply {
             layoutManager = GridLayoutManager(requireContext(), 3)
             adapter = mediaAdapter
+            addItemDecoration(GridSpacingItemDecoration(3, 16, true))
         }
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()
