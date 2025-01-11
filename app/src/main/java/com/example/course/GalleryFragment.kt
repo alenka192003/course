@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.course.databinding.FragmentGalleryBinding
 
@@ -33,15 +34,6 @@ class GalleryFragment : Fragment() {
         loadMedia()
     }
 
-    private fun setupRecyclerView() {
-        mediaAdapter = MediaAdapter(mediaList) { media ->
-            // Handle media item click
-        }
-        binding.recyclerView.apply {
-            layoutManager = GridLayoutManager(requireContext(), 3)
-            adapter = mediaAdapter
-        }
-    }
 
     private fun loadMedia() {
         val projection = arrayOf(
@@ -76,6 +68,7 @@ class GalleryFragment : Fragment() {
             }
         }
 
+
         // Query for videos
         requireContext().contentResolver.query(
             videoCollection,
@@ -100,6 +93,30 @@ class GalleryFragment : Fragment() {
 
         mediaAdapter.notifyDataSetChanged()
     }
+
+
+    private fun setupRecyclerView() {
+        mediaAdapter = MediaAdapter(mediaList) { media ->
+            val position = mediaList.indexOf(media)
+            val bundle = Bundle().apply {
+                putParcelableArrayList("mediaList", ArrayList(mediaList))
+                putInt("initialPosition", position)
+            }
+
+            view?.let { view ->
+                Navigation.findNavController(view).navigate(
+                    R.id.action_gallery_to_media_viewer,
+                    bundle
+                )
+            }
+        }
+
+        binding.recyclerView.apply {
+            layoutManager = GridLayoutManager(requireContext(), 3)
+            adapter = mediaAdapter
+        }
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

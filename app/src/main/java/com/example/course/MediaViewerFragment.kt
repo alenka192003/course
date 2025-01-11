@@ -14,8 +14,8 @@ class MediaViewerFragment : Fragment() {
     private var _binding: FragmentMediaViewerBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var mediaUri: String
-    private lateinit var mediaType: String
+    private lateinit var mediaList: ArrayList<MediaItem>
+    private var initialPosition: Int = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -27,27 +27,13 @@ class MediaViewerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        mediaUri = arguments?.getString("uri") ?: ""
-        mediaType = arguments?.getString("type") ?: ""
 
-        displayMedia()
-    }
+        mediaList = arguments?.getParcelableArrayList("mediaList") ?: arrayListOf()
+        initialPosition = arguments?.getInt("initialPosition") ?: 0
 
-    private fun displayMedia() {
-        if (mediaType == "IMAGE") {
-            binding.imageView.apply {
-                visibility = View.VISIBLE
-                setImageURI(Uri.parse(mediaUri))
-            }
-            binding.videoView.visibility = View.GONE
-        } else if (mediaType == "VIDEO") {
-            binding.videoView.apply {
-                visibility = View.VISIBLE
-                setVideoURI(Uri.parse(mediaUri))
-                start()
-            }
-            binding.imageView.visibility = View.GONE
-        }
+        val adapter = MediaPagerAdapter(mediaList)
+        binding.viewPager.adapter = adapter
+        binding.viewPager.setCurrentItem(initialPosition, false)
     }
 
     override fun onDestroyView() {

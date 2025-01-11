@@ -2,6 +2,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -50,6 +51,8 @@ dependencies {
 
     implementation ("com.github.bumptech.glide:glide:4.12.0")
     implementation ("androidx.recyclerview:recyclerview:1.2.1")
+    implementation ("androidx.viewpager2:viewpager2:1.0.0")
+
     implementation(libs.filament.android)
     // CameraX
     val cameraxVersion = "1.3.0-alpha05"
