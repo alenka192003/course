@@ -1,5 +1,6 @@
 package com.example.course
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,10 +24,20 @@ class MediaAdapter(
         val mediaItem = mediaList[position]
         holder.bind(mediaItem)
 
+        val params = holder.itemView.layoutParams
+        val screenWidth = holder.itemView.context.resources.displayMetrics.widthPixels
+        val spanCount = 3 // Количество столбцов
+        val spacing = 16.dpToPx(holder.itemView.context) // Отступы между элементами
+
+        params.width = (screenWidth - (spanCount + 1) * spacing) / spanCount
+        params.height = params.width
+        holder.itemView.layoutParams = params
+
         holder.itemView.setOnClickListener {
             onItemClick(mediaItem, position)
         }
     }
+
 
     override fun getItemCount(): Int = mediaList.size
 
@@ -58,4 +69,8 @@ class MediaAdapter(
             itemView.setOnClickListener { onItemClick(media, adapterPosition) }
         }
     }
+}
+
+fun Int.dpToPx(context: Context): Int {
+    return (this * context.resources.displayMetrics.density).toInt()
 }

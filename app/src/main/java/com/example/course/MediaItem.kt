@@ -1,4 +1,5 @@
 package com.example.course
+
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import android.net.Uri

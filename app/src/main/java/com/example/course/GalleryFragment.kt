@@ -132,13 +132,13 @@ class GalleryFragment : Fragment() {
             }
         )
 
-
         binding.recyclerView.apply {
             layoutManager = GridLayoutManager(requireContext(), 3)
             adapter = mediaAdapter
-            addItemDecoration(GridSpacingItemDecoration(3, 16, true))
+            addItemDecoration(GridSpacingItemDecoration(3, 16.dpToPx(requireContext()), true))
         }
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
