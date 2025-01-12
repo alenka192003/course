@@ -7,11 +7,16 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.course.databinding.ItemMediaBinding
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MediaAdapter(
     private val mediaList: List<MediaItem>,
     private val onItemClick: (MediaItem, Int) -> Unit
 ) : RecyclerView.Adapter<MediaAdapter.MediaViewHolder>() {
+
+    private val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaViewHolder {
         val binding = ItemMediaBinding.inflate(
@@ -65,7 +70,9 @@ class MediaAdapter(
                 }
             }
 
-            // Передаём два параметра в onItemClick
+            val date = Date(media.date * 1000) // Умножаем на 1000, так как время в секундах
+            binding.dateText.text = dateFormat.format(date)
+
             itemView.setOnClickListener { onItemClick(media, adapterPosition) }
         }
     }

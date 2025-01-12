@@ -3,6 +3,7 @@ package com.example.course
 import android.Manifest
 import android.content.ContentValues
 import android.content.Intent
+import android.content.res.Configuration
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Bundle
@@ -63,12 +64,34 @@ class CameraFragment : Fragment() {
         return binding.root
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         cameraExecutor = Executors.newSingleThreadExecutor()
         setupUI()
         startCamera()
+
+        // Проверка ориентации при создании фрагмента, чтобы инициализировать UI
+        updateUIForOrientation(resources.configuration.orientation)
     }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        updateUIForOrientation(newConfig.orientation)
+    }
+
+    private fun updateUIForOrientation(orientation: Int) {
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            // В ландшафтной ориентации
+            binding.captureButton.visibility = View.GONE  // Скрыть кнопку фото
+            binding.recordButton.visibility = View.VISIBLE  // Показать кнопку записи видео
+        } else {
+            // В портретной ориентации
+            binding.captureButton.visibility = View.VISIBLE  // Показать кнопку фото
+            binding.recordButton.visibility = View.GONE  // Скрыть кнопку записи видео
+        }
+    }
+
 
     private fun setupUI() {
         binding.apply {
@@ -81,6 +104,7 @@ class CameraFragment : Fragment() {
             cameraModeToggle.setOnClickListener { toggleCameraMode() }
         }
     }
+
 
     private fun toggleCameraMode() {
         isPhotoMode = !isPhotoMode
