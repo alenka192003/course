@@ -144,6 +144,23 @@ class CameraFragment : Fragment() {
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
 
+        binding.flashAnimation.apply {
+            alpha = 0f
+            visibility = View.VISIBLE
+            animate()
+                .alpha(1f)
+                .setDuration(100)
+                .withEndAction {
+                    animate()
+                        .alpha(0f)
+                        .setDuration(100)
+                        .withEndAction {
+                            visibility = View.GONE
+                        }
+                }
+        }
+
+
         val name = SimpleDateFormat(FILENAME_FORMAT, Locale.US)
             .format(System.currentTimeMillis())
         val contentValues = ContentValues().apply {
